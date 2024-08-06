@@ -5,7 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,29 +18,32 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             TwoFactorAuthTheme {
-                TwoFactorAuthApp();
+                TwoFactorAuthApp()
             }
         }
     }
 }
 
 enum class Pages {
-    Main,
-    Settings
+    Home,
+    Settings,
+    Add
 }
 
 @Composable
 fun TwoFactorAuthApp(navController: NavHostController = rememberNavController()) {
     NavHost(
         navController = navController,
-        startDestination = Pages.Main.name,
+        startDestination = Pages.Home.name,
     ) {
-        composable(route = Pages.Main.name) {
-            MainPage()
+        composable(route = Pages.Home.name) {
+            MainPage(navController = navController)
         }
         composable(route = Pages.Settings.name) {
-            val context = LocalContext.current;
-            SettingPage()
+            SettingPage(navController = navController)
+        }
+        composable(route = Pages.Add.name) {
+            AddServicePage(navController = navController)
         }
     }
 }

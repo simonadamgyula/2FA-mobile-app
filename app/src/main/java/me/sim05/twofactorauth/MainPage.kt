@@ -1,6 +1,6 @@
 package me.sim05.twofactorauth
 
-import android.annotation.SuppressLint
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -20,32 +20,49 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import me.sim05.twofactorauth.ui.theme.TwoFactorAuthTheme
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavController
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import me.sim05.twofactorauth.ui.BottomNavigationBar
 
 @Composable
-fun MainPage(modifier: Modifier = Modifier) {
+fun MainPage(
+    modifier: Modifier = Modifier,
+    navController: NavController,
+) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
-            FloatingActionButton(onClick = { }) {
+            FloatingActionButton(
+                onClick = {
+                    navController.navigate(Pages.Add.name) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+            ) {
                 Icon(Icons.Filled.Add, "Add new 2FA service")
             }
         },
         content = { innerPadding ->
-            TwoFactorAuthServices(modifier = modifier.padding(innerPadding));
+            TwoFactorAuthServices(modifier = modifier.padding(innerPadding).padding(top = 20.dp))
         },
         bottomBar = {
-            BottomNavigation
+            BottomNavigationBar(navController)
         }
     )
-
 }
 
 @Composable
 fun TwoFactorAuthServices(modifier: Modifier = Modifier) {
-    TwoFactorAuthService(modifier);
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
+        TwoFactorAuthService()
+        TwoFactorAuthService()
+    }
 }
 
 @Composable
@@ -62,34 +79,25 @@ fun TwoFactorAuthService(modifier: Modifier = Modifier) {
             modifier = Modifier
                 .padding(end = 10.dp)
                 .size(50.dp)
-        );
+        )
         Column {
             Text(
                 "Service name",
                 style = MaterialTheme.typography.labelMedium
-            );
+            )
             Text(
                 "Username connected to token",
                 style = MaterialTheme.typography.bodySmall
-            );
+            )
             Text(
                 "000 000",
                 style = MaterialTheme.typography.titleLarge
-            );
-        };
-        Spacer(modifier = Modifier.weight(1f));
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
         Icon(
             Icons.Filled.CheckCircle,
             "placeholder"
-        );
-    }
-}
-
-@SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
-@Preview
-@Composable
-fun MainPagePreview() {
-    TwoFactorAuthTheme {
-        TwoFactorAuthApp();
+        )
     }
 }
