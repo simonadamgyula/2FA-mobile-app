@@ -9,7 +9,6 @@ import me.sim05.twofactorauth.data.ServicesRepository
 
 class ServiceEntryViewModel(private val servicesRepository: ServicesRepository) : ViewModel() {
     var serviceUiState by mutableStateOf(ServiceUiState())
-        private set
 
     fun updateUiState(serviceDetails: ServiceDetails) {
         serviceUiState =
@@ -48,7 +47,7 @@ fun ServiceDetails.toService(): Service = Service(
     token = token
 )
 
-fun Service.toItemUiState(isEntryValid: Boolean = false): ServiceUiState = ServiceUiState(
+fun Service.toServiceUiState(isEntryValid: Boolean = false): ServiceUiState = ServiceUiState(
     serviceDetails = this.toServiceDetails(),
     isEntryValid = isEntryValid
 )

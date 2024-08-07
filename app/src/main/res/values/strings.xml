@@ -2,4 +2,5 @@
     <string name="app_name">TwoFactorAuth</string>
     <string name="no_services_added">No services added</string>
     <string name="add_new_2fa_service">Add new 2FA service</string>
+    <string name="create">Create</string>
 </resources>

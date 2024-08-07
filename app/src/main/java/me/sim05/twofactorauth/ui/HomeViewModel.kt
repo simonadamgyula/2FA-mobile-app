@@ -9,7 +9,7 @@ import kotlinx.coroutines.flow.stateIn
 import me.sim05.twofactorauth.data.Service
 import me.sim05.twofactorauth.data.ServicesRepository
 
-class HomeViewModel(private val servicesRepository: ServicesRepository) : ViewModel() {
+class HomeViewModel(servicesRepository: ServicesRepository) : ViewModel() {
     val homeUiState: StateFlow<HomeUiState> =
         servicesRepository.getAllServicesStream().map { HomeUiState(it) }
             .stateIn(

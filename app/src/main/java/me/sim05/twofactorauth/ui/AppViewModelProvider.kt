@@ -12,6 +12,9 @@ class AppViewModelProvider {
             initializer {
                 ServiceEntryViewModel(servicesApplication().container.servicesRepository)
             }
+            initializer { 
+                HomeViewModel(servicesApplication().container.servicesRepository)
+            }
         }
     }
 }
