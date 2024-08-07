@@ -16,7 +16,6 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.currentBackStackEntryAsState
 import me.sim05.twofactorauth.Pages
-import me.sim05.twofactorauth.ServicesViewModel
 
 sealed class BottomNavItem(val route: String, val icon: ImageVector, val label: String) {
     data object Home : BottomNavItem(Pages.Home.name, Icons.Default.Home, "Home")

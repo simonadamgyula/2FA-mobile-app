@@ -20,7 +20,7 @@ interface ServiceDao {
     suspend fun delete(service: Service)
 
     @Query("SELECT * from services WHERE id = :id")
-    fun getService(id: Int): Flow<Service>
+    fun getService(id: Int): Flow<Service?>
 
     @Query("SELECT * from services ORDER BY id ASC")
     fun getServices(): Flow<List<Service>>

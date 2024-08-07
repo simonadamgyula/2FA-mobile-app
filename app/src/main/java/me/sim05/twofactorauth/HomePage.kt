@@ -18,19 +18,28 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import me.sim05.twofactorauth.data.Service
+import me.sim05.twofactorauth.ui.AppViewModelProvider
 import me.sim05.twofactorauth.ui.BottomNavigationBar
+import me.sim05.twofactorauth.ui.HomeViewModel
 
 @Composable
-fun MainPage(
+fun HomePage(
     modifier: Modifier = Modifier,
     navController: NavController,
+    viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
+    val homeUiState by viewModel.homeUiState.collectAsState()
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         floatingActionButton = {
@@ -45,11 +54,16 @@ fun MainPage(
                     }
                 },
             ) {
-                Icon(Icons.Filled.Add, "Add new 2FA service")
+                Icon(Icons.Filled.Add, stringResource(R.string.add_new_2fa_service))
             }
         },
         content = { innerPadding ->
-            TwoFactorAuthServices(modifier = modifier.padding(innerPadding).padding(top = 20.dp))
+            TwoFactorAuthServices(
+                modifier = modifier
+                    .padding(innerPadding)
+                    .padding(top = 20.dp),
+                serviceList = homeUiState.serviceList
+            )
         },
         bottomBar = {
             BottomNavigationBar(navController)
@@ -58,10 +72,14 @@ fun MainPage(
 }
 
 @Composable
-fun TwoFactorAuthServices(modifier: Modifier = Modifier) {
-    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        TwoFactorAuthService()
-        TwoFactorAuthService()
+fun TwoFactorAuthServices(modifier: Modifier = Modifier, serviceList: List<Service>) {
+    if (serviceList.isEmpty()) {
+        Text(stringResource(R.string.no_services_added))
+    } else {
+        Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
+            TwoFactorAuthService()
+            TwoFactorAuthService()
+        }
     }
 }
 

@@ -5,7 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.Composable
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -37,7 +36,7 @@ fun TwoFactorAuthApp(navController: NavHostController = rememberNavController())
         startDestination = Pages.Home.name,
     ) {
         composable(route = Pages.Home.name) {
-            MainPage(navController = navController)
+            HomePage(navController = navController)
         }
         composable(route = Pages.Settings.name) {
             SettingPage(navController = navController)
