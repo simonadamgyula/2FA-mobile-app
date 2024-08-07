@@ -2,7 +2,6 @@ package me.sim05.twofactorauth
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -36,9 +35,9 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
 import me.sim05.twofactorauth.data.Service
-import me.sim05.twofactorauth.ui.AppViewModelProvider
+import me.sim05.twofactorauth.ui.viewModels.AppViewModelProvider
 import me.sim05.twofactorauth.ui.BottomNavigationBar
-import me.sim05.twofactorauth.ui.HomeViewModel
+import me.sim05.twofactorauth.ui.viewModels.HomeViewModel
 import me.sim05.twofactorauth.ui.theme.TwoFactorAuthTheme
 
 @Composable
@@ -50,7 +49,7 @@ fun HomePage(
     val homeUiState by viewModel.homeUiState.collectAsState()
 
     Scaffold(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxSize(),
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -68,7 +67,7 @@ fun HomePage(
         },
         content = { innerPadding ->
             TwoFactorAuthServices(
-                modifier = modifier
+                modifier = Modifier
                     .padding(innerPadding)
                     .padding(top = 20.dp),
                 serviceList = homeUiState.serviceList
@@ -83,7 +82,7 @@ fun HomePage(
 @Composable
 fun TwoFactorAuthServices(modifier: Modifier = Modifier, serviceList: List<Service>) {
     if (serviceList.isEmpty()) {
-        Text(stringResource(R.string.no_services_added))
+        Text(stringResource(R.string.no_services_added), modifier = modifier)
     } else {
         LazyColumn(
             modifier = modifier.padding(horizontal = 10.dp),

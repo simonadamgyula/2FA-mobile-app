@@ -1,4 +1,4 @@
-package me.sim05.twofactorauth.ui
+package me.sim05.twofactorauth.ui.viewModels
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

@@ -1,4 +1,4 @@
-package me.sim05.twofactorauth.ui
+package me.sim05.twofactorauth.ui.viewModels
 
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewmodel.CreationExtras
@@ -12,7 +12,7 @@ class AppViewModelProvider {
             initializer {
                 ServiceEntryViewModel(servicesApplication().container.servicesRepository)
             }
-            initializer { 
+            initializer {
                 HomeViewModel(servicesApplication().container.servicesRepository)
             }
         }

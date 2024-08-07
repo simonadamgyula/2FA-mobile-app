@@ -1,4 +1,4 @@
-package me.sim05.twofactorauth.ui
+package me.sim05.twofactorauth.ui.viewModels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
