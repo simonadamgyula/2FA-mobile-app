@@ -1,6 +1,7 @@
 package me.sim05.twofactorauth
 
 import android.content.res.Configuration
+import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -25,21 +26,32 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
+import kotlinx.coroutines.delay
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.saveable.rememberSaveable
 import me.sim05.twofactorauth.data.Service
 import me.sim05.twofactorauth.ui.viewModels.AppViewModelProvider
-import me.sim05.twofactorauth.ui.BottomNavigationBar
+import me.sim05.twofactorauth.ui.components.BottomNavigationBar
 import me.sim05.twofactorauth.ui.viewModels.HomeViewModel
 import me.sim05.twofactorauth.ui.theme.TwoFactorAuthTheme
 import me.sim05.twofactorauth.ui.viewModels.ServiceDetails
+import me.sim05.twofactorauth.ui.viewModels.ServiceEntryViewModel
+import me.sim05.twofactorauth.ui.viewModels.toServiceDetails
 
 @Composable
 fun HomePage(
@@ -48,6 +60,7 @@ fun HomePage(
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val homeUiState by viewModel.homeUiState.collectAsState()
+    val serviceEntryViewModel: ServiceEntryViewModel = viewModel(LocalContext.current as ComponentActivity, factory = AppViewModelProvider.Factory)
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -73,8 +86,11 @@ fun HomePage(
                     .padding(top = 20.dp),
                 serviceList = homeUiState.serviceList,
                 navToSetting = { serviceDetails ->
-                    navController.currentBackStackEntry?.savedStateHandle?.set("SERVICE", serviceDetails);
+                    serviceEntryViewModel.updateUiState(serviceDetails)
                     navController.navigate(Pages.Edit.name) {
+                        popUpTo(navController.graph.findStartDestination().id) {
+                            saveState = true
+                        }
                         launchSingleTop = true
                         restoreState = true
                     }
@@ -89,6 +105,31 @@ fun HomePage(
 
 @Composable
 fun TwoFactorAuthServices(modifier: Modifier = Modifier, serviceList: List<Service>, navToSetting: (ServiceDetails) -> Unit = {}) {
+    var targetTime by rememberSaveable {
+        mutableLongStateOf(System.currentTimeMillis() + 30000)
+    }
+
+    var remainingTime by remember {
+        mutableLongStateOf(targetTime - System.currentTimeMillis())
+    }
+
+    var isRunning by remember { mutableStateOf(false) }
+    LifecycleResumeEffect(Unit) {
+        isRunning = true
+        onPauseOrDispose { isRunning = false }
+    }
+
+    LaunchedEffect(isRunning) {
+        while (isRunning) {
+            if (remainingTime <= 0) {
+                targetTime = System.currentTimeMillis() + 30000
+            }
+
+            remainingTime = targetTime - System.currentTimeMillis()
+            delay(1000)
+        }
+    }
+
     if (serviceList.isEmpty()) {
         Text(stringResource(R.string.no_services_added), modifier = modifier)
     } else {
@@ -98,15 +139,15 @@ fun TwoFactorAuthServices(modifier: Modifier = Modifier, serviceList: List<Servi
         ) {
             items(serviceList) { service ->
                 TwoFactorAuthService(service = service, navToSetting = {
-
-                })
+                    navToSetting(service.toServiceDetails())
+                }, timeRemaining = remainingTime)
             }
         }
     }
 }
 
 @Composable
-fun TwoFactorAuthService(modifier: Modifier = Modifier, service: Service, navToSetting: () -> Unit = {}) {
+fun TwoFactorAuthService(modifier: Modifier = Modifier, service: Service, navToSetting: () -> Unit = {}, timeRemaining: Long) {
     Card(
         modifier = modifier
             .fillMaxWidth(),
@@ -117,7 +158,7 @@ fun TwoFactorAuthService(modifier: Modifier = Modifier, service: Service, navToS
             disabledContainerColor = MaterialTheme.colorScheme.onSurface,
         ),
         onClick = {
-
+            navToSetting()
         }
     ) {
         Row(
@@ -151,8 +192,20 @@ fun TwoFactorAuthService(modifier: Modifier = Modifier, service: Service, navToS
                 Icons.Filled.CheckCircle,
                 "placeholder"
             )
+            Countdown(
+                modifier = Modifier.padding(start = 10.dp),
+                timeLeft = (timeRemaining / 1000).toInt()
+            )
         }
     }
+}
+
+@Composable
+fun Countdown(modifier: Modifier = Modifier, timeLeft: Int) {
+    Text(
+        text = timeLeft.toString(),
+        modifier = modifier
+    )
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)

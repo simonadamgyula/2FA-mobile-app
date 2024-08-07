@@ -47,9 +47,8 @@ fun TwoFactorAuthApp(navController: NavHostController = rememberNavController())
         composable(route = Pages.Add.name) {
             AddServicePage(navController = navController)
         }
-        composable(route = Pages.Edit.name, arguments = listOf(navArgument("serviceDetails") { defaultValue = null })) {
-            val serviceDetails = navController.previousBackStackEntry?.savedStateHandle?.get<ServiceDetails>("SERVICE")
-            EditServicePage(navController = navController, serviceDetails = serviceDetails)
+        composable(route = Pages.Edit.name) {
+            EditServicePage(navController = navController)
         }
     }
 }

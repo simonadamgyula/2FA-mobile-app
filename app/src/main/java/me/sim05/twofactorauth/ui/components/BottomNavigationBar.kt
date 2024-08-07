@@ -1,4 +1,4 @@
-package me.sim05.twofactorauth.ui
+package me.sim05.twofactorauth.ui.components
 
 import android.content.res.Configuration
 import androidx.compose.foundation.layout.padding
