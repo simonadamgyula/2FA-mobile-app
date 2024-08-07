@@ -39,6 +39,7 @@ import me.sim05.twofactorauth.ui.viewModels.AppViewModelProvider
 import me.sim05.twofactorauth.ui.BottomNavigationBar
 import me.sim05.twofactorauth.ui.viewModels.HomeViewModel
 import me.sim05.twofactorauth.ui.theme.TwoFactorAuthTheme
+import me.sim05.twofactorauth.ui.viewModels.ServiceDetails
 
 @Composable
 fun HomePage(
@@ -70,7 +71,14 @@ fun HomePage(
                 modifier = Modifier
                     .padding(innerPadding)
                     .padding(top = 20.dp),
-                serviceList = homeUiState.serviceList
+                serviceList = homeUiState.serviceList,
+                navToSetting = { serviceDetails ->
+                    navController.currentBackStackEntry?.savedStateHandle?.set("SERVICE", serviceDetails);
+                    navController.navigate(Pages.Edit.name) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
             )
         },
         bottomBar = {
@@ -80,7 +88,7 @@ fun HomePage(
 }
 
 @Composable
-fun TwoFactorAuthServices(modifier: Modifier = Modifier, serviceList: List<Service>) {
+fun TwoFactorAuthServices(modifier: Modifier = Modifier, serviceList: List<Service>, navToSetting: (ServiceDetails) -> Unit = {}) {
     if (serviceList.isEmpty()) {
         Text(stringResource(R.string.no_services_added), modifier = modifier)
     } else {
@@ -89,14 +97,16 @@ fun TwoFactorAuthServices(modifier: Modifier = Modifier, serviceList: List<Servi
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(serviceList) { service ->
-                TwoFactorAuthService(service = service)
+                TwoFactorAuthService(service = service, navToSetting = {
+
+                })
             }
         }
     }
 }
 
 @Composable
-fun TwoFactorAuthService(modifier: Modifier = Modifier, service: Service) {
+fun TwoFactorAuthService(modifier: Modifier = Modifier, service: Service, navToSetting: () -> Unit = {}) {
     Card(
         modifier = modifier
             .fillMaxWidth(),
@@ -106,6 +116,9 @@ fun TwoFactorAuthService(modifier: Modifier = Modifier, service: Service) {
             disabledContentColor = MaterialTheme.colorScheme.surfaceDim,
             disabledContainerColor = MaterialTheme.colorScheme.onSurface,
         ),
+        onClick = {
+
+        }
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,

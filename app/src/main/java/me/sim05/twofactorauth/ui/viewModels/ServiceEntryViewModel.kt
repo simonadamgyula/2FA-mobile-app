@@ -21,6 +21,10 @@ class ServiceEntryViewModel(private val servicesRepository: ServicesRepository) 
         }
     }
 
+    suspend fun deleteService() {
+        servicesRepository.deleteService(serviceUiState.serviceDetails.toService())
+    }
+
     private fun validateInput(uiState: ServiceDetails = serviceUiState.serviceDetails): Boolean {
         return with(uiState) {
             name.isNotBlank() && username.isNotBlank() && token.isNotBlank()

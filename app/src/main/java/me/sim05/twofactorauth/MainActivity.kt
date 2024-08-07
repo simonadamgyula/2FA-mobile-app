@@ -9,7 +9,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import me.sim05.twofactorauth.ui.theme.TwoFactorAuthTheme
+import me.sim05.twofactorauth.ui.viewModels.ServiceDetails
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -26,7 +28,8 @@ class MainActivity : ComponentActivity() {
 enum class Pages {
     Home,
     Settings,
-    Add
+    Add,
+    Edit,
 }
 
 @Composable
@@ -43,6 +46,10 @@ fun TwoFactorAuthApp(navController: NavHostController = rememberNavController())
         }
         composable(route = Pages.Add.name) {
             AddServicePage(navController = navController)
+        }
+        composable(route = Pages.Edit.name, arguments = listOf(navArgument("serviceDetails") { defaultValue = null })) {
+            val serviceDetails = navController.previousBackStackEntry?.savedStateHandle?.get<ServiceDetails>("SERVICE")
+            EditServicePage(navController = navController, serviceDetails = serviceDetails)
         }
     }
 }

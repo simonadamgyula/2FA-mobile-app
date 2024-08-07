@@ -34,6 +34,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import kotlinx.coroutines.launch
 import me.sim05.twofactorauth.ui.BottomNavigationBar
+import me.sim05.twofactorauth.ui.components.CardTextField
 import me.sim05.twofactorauth.ui.theme.TwoFactorAuthTheme
 import me.sim05.twofactorauth.ui.viewModels.AppViewModelProvider
 import me.sim05.twofactorauth.ui.viewModels.ServiceDetails
@@ -125,36 +126,6 @@ fun ServiceForm(
             onValueChange = { onValueChange(serviceDetails.copy(token = it)) },
             label = "Token: ",
             leadingIcon = Icons.Filled.Lock,
-        )
-    }
-}
-
-@Composable
-fun CardTextField(
-    modifier: Modifier = Modifier,
-    value: String,
-    onValueChange: (String) -> Unit,
-    label: String,
-    leadingIcon: ImageVector
-) {
-    Card(
-        shape = MaterialTheme.shapes.medium, modifier = modifier, colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainer,
-        )
-    ) {
-        TextField(
-            value = value,
-            onValueChange = onValueChange,
-            label = { Text(label) },
-            leadingIcon = { Icon(leadingIcon, contentDescription = null) },
-            colors = TextFieldDefaults.colors(
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                disabledIndicatorColor = Color.Transparent,
-                focusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                unfocusedContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                disabledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-            )
         )
     }
 }
