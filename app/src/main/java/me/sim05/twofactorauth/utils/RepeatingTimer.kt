@@ -8,11 +8,13 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlin.math.ceil
+import kotlin.math.roundToLong
 import kotlin.time.Duration.Companion.seconds
 
 class RepeatingTimer(private val interval: Long) {
     private var timer: Job? = null
-    private var remainingTime: Long = 0
+    private var goalTime: Long = 0
     private var isRunning = false
 
     private val timeInMillisFlow = MutableStateFlow(0L)
@@ -21,7 +23,7 @@ class RepeatingTimer(private val interval: Long) {
     private val isDoneFlow = MutableStateFlow(true)
 
     init {
-        remainingTime = interval
+        goalTime = (System.currentTimeMillis().floorDiv(30) * 30) + 30.seconds.inWholeMilliseconds
     }
 
     val timerState = combine(
@@ -38,10 +40,9 @@ class RepeatingTimer(private val interval: Long) {
         if (isRunning) return
 
         timer = GlobalScope.launch {
-            while (remainingTime > 0) {
-                delay(1.seconds.inWholeMilliseconds)
-                Log.v("timer", "remainingTime: $remainingTime")
-                remainingTime -= 1.seconds.inWholeMilliseconds
+            while (goalTime - System.currentTimeMillis() > 0) {
+                Log.v("timerCheck", "timer is running: ${timeInMillisFlow.value}, ${goalTime - System.currentTimeMillis()}")
+                delay(1000)
                 onTimerTick()
             }
             restart()
@@ -56,17 +57,16 @@ class RepeatingTimer(private val interval: Long) {
 
     fun restart() {
         timer?.cancel()
-        remainingTime = interval
+        goalTime = (System.currentTimeMillis().floorDiv(30) * 30) + 30.seconds.inWholeMilliseconds
         isRunning = false
         start()
     }
 
     private fun onTimerTick() {
-        Log.v("timer", "remainingTime: $remainingTime")
-
-        timeInMillisFlow.value = remainingTime
-        progressFlow.value = (remainingTime.toFloat() / interval.toFloat()) * 100
+        timeInMillisFlow.value = ceil((goalTime - System.currentTimeMillis()).div(1000f)).toLong()
+        Log.v("timerCheck", "timer: ${timeInMillisFlow.value}")
+        progressFlow.value = (timeInMillisFlow.value.toFloat() / interval.toFloat()) * 100
         isPlayingFlow.value = isRunning
-        isDoneFlow.value = remainingTime == 0L
+        isDoneFlow.value = timeInMillisFlow.value == 0L
     }
 }

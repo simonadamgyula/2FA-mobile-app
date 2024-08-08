@@ -142,7 +142,7 @@ fun EditServicePagePreview() {
                     serviceDetails = ServiceDetails(
                         name = "Not service name",
                         username = "IsUsername",
-                        token = "NotAToken"
+                        secret = "NotAToken"
                     )
                 )
             )

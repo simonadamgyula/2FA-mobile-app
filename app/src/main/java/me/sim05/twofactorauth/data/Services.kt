@@ -9,5 +9,5 @@ data class Service (
     val id: Int,
     val name: String,
     val username: String,
-    val token: String
+    val secret: String
 )

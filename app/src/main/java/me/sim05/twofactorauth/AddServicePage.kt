@@ -114,9 +114,9 @@ fun ServiceForm(
         )
         CardTextField(
             modifier = Modifier.fillMaxWidth(),
-            value = serviceDetails.token,
-            onValueChange = { onValueChange(serviceDetails.copy(token = it)) },
-            label = "Token: ",
+            value = serviceDetails.secret,
+            onValueChange = { onValueChange(serviceDetails.copy(secret = it)) },
+            label = "Secret: ",
             leadingIcon = Icons.Filled.Lock,
         )
     }

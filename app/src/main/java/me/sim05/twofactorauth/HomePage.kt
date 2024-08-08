@@ -51,7 +51,7 @@ import me.sim05.twofactorauth.ui.viewModels.ServiceDetails
 import me.sim05.twofactorauth.ui.viewModels.ServiceEntryViewModel
 import me.sim05.twofactorauth.ui.viewModels.toServiceDetails
 import me.sim05.twofactorauth.utils.TimerState
-import me.sim05.twofactorauth.utils.Token
+import me.sim05.twofactorauth.utils.totp
 
 @Composable
 fun HomePage(
@@ -128,7 +128,7 @@ fun TwoFactorAuthServices(
                     navToSetting = {
                         navToSetting(service.toServiceDetails())
                     },
-                    timeRemaining = timerState?.timeInMillis ?: 30, token = Token(service.token),
+                    timeRemaining = timerState?.timeInMillis ?: 30
                 )
             }
         }
@@ -141,7 +141,6 @@ fun TwoFactorAuthService(
     service: Service,
     navToSetting: () -> Unit = {},
     timeRemaining: Long,
-    token: Token
 ) {
     Card(
         modifier = modifier
@@ -178,7 +177,7 @@ fun TwoFactorAuthService(
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
-                    token.getToken(),
+                    totp(service.secret),
                     style = MaterialTheme.typography.titleLarge
                 )
             }
@@ -187,7 +186,7 @@ fun TwoFactorAuthService(
                 modifier = Modifier
                     .padding(start = 10.dp)
                     .size(36.dp),
-                timeLeft = (timeRemaining / 1000).toInt()
+                timeLeft = (timeRemaining).toInt()
             )
         }
     }

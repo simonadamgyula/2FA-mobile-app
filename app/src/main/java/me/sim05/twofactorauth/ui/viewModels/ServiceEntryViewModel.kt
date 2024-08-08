@@ -27,7 +27,7 @@ class ServiceEntryViewModel(private val servicesRepository: ServicesRepository) 
 
     private fun validateInput(uiState: ServiceDetails = serviceUiState.serviceDetails): Boolean {
         return with(uiState) {
-            name.isNotBlank() && username.isNotBlank() && token.isNotBlank()
+            name.isNotBlank() && username.isNotBlank() && secret.isNotBlank()
         }
     }
 }
@@ -41,14 +41,14 @@ data class ServiceDetails(
     val id: Int = 0,
     val name: String = "",
     val username: String = "",
-    val token: String = "",
+    val secret: String = "",
 )
 
 fun ServiceDetails.toService(): Service = Service(
     id = id,
     name = name,
     username = username,
-    token = token
+    secret = secret
 )
 
 fun Service.toServiceUiState(isEntryValid: Boolean = false): ServiceUiState = ServiceUiState(
@@ -60,5 +60,5 @@ fun Service.toServiceDetails(): ServiceDetails = ServiceDetails(
     id = id,
     name = name,
     username = username,
-    token = token
+    secret = secret
 )
