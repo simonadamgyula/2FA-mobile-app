@@ -23,7 +23,11 @@ class RepeatingTimer(private val interval: Long) {
     private val isDoneFlow = MutableStateFlow(true)
 
     init {
-        goalTime = (System.currentTimeMillis().floorDiv(30) * 30) + 30.seconds.inWholeMilliseconds
+        goalTime = newGoalTime()
+    }
+
+    private fun newGoalTime(): Long {
+        return ((((System.currentTimeMillis() + 7).floorDiv(1000)).floorDiv(30) * 30) + 30.seconds.inWholeSeconds) * 1000
     }
 
     val timerState = combine(
@@ -57,14 +61,13 @@ class RepeatingTimer(private val interval: Long) {
 
     fun restart() {
         timer?.cancel()
-        goalTime = (System.currentTimeMillis().floorDiv(30) * 30) + 30.seconds.inWholeMilliseconds
+        goalTime = newGoalTime()
         isRunning = false
         start()
     }
 
     private fun onTimerTick() {
         timeInMillisFlow.value = ceil((goalTime - System.currentTimeMillis()).div(1000f)).toLong()
-        Log.v("timerCheck", "timer: ${timeInMillisFlow.value}")
         progressFlow.value = (timeInMillisFlow.value.toFloat() / interval.toFloat()) * 100
         isPlayingFlow.value = isRunning
         isDoneFlow.value = timeInMillisFlow.value == 0L

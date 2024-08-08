@@ -4,6 +4,8 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.OptIn
+import androidx.camera.core.ExperimentalGetImage
 import androidx.compose.runtime.Composable
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -30,8 +32,10 @@ enum class Pages {
     Settings,
     Add,
     Edit,
+    QrScan,
 }
 
+@OptIn(ExperimentalGetImage::class)
 @Composable
 fun TwoFactorAuthApp(navController: NavHostController = rememberNavController()) {
     NavHost(
@@ -49,6 +53,9 @@ fun TwoFactorAuthApp(navController: NavHostController = rememberNavController())
         }
         composable(route = Pages.Edit.name) {
             EditServicePage(navController = navController)
+        }
+        composable(route = Pages.QrScan.name) {
+            QrScanningScreen()
         }
     }
 }

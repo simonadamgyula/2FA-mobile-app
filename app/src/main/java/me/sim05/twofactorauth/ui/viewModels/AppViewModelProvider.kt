@@ -19,6 +19,9 @@ class AppViewModelProvider {
                 repeatingTimer.start()
                 HomeViewModel(servicesApplication().container.servicesRepository, repeatingTimer)
             }
+            initializer {
+                QrCodeViewModel()
+            }
         }
     }
 }

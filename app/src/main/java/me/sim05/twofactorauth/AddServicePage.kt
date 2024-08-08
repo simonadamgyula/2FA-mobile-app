@@ -56,6 +56,13 @@ fun AddServicePage(
             },
             viewModel.serviceUiState
         )
+        Button(
+            onClick = {
+                navController.navigate(Pages.QrScan.name)
+            }
+        ) {
+            Text("Scan QR code")
+        }
     }
 }
 

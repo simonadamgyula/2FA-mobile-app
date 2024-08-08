@@ -208,7 +208,7 @@ fun Countdown(modifier: Modifier = Modifier, timeLeft: Int) {
         )
     }, contentAlignment = Alignment.Center) {
         Text(
-            text = timeLeft.toString(),
+            text = (if (timeLeft == 0) 30 else timeLeft).toString(),
             style = MaterialTheme.typography.titleLarge,
             color = color
         )
