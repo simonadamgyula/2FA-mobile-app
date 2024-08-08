@@ -5,6 +5,8 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import me.sim05.twofactorauth.ServicesApplication
+import me.sim05.twofactorauth.utils.RepeatingTimer
+import kotlin.time.Duration.Companion.seconds
 
 class AppViewModelProvider {
     companion object {
@@ -13,7 +15,9 @@ class AppViewModelProvider {
                 ServiceEntryViewModel(servicesApplication().container.servicesRepository)
             }
             initializer {
-                HomeViewModel(servicesApplication().container.servicesRepository)
+                val repeatingTimer = RepeatingTimer(30.seconds.inWholeMilliseconds)
+                repeatingTimer.start()
+                HomeViewModel(servicesApplication().container.servicesRepository, repeatingTimer)
             }
         }
     }

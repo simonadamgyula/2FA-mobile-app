@@ -3,6 +3,7 @@ package me.sim05.twofactorauth
 import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -10,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -26,32 +28,30 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.compose.LifecycleResumeEffect
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
-import kotlinx.coroutines.delay
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.saveable.rememberSaveable
 import me.sim05.twofactorauth.data.Service
-import me.sim05.twofactorauth.ui.viewModels.AppViewModelProvider
 import me.sim05.twofactorauth.ui.components.BottomNavigationBar
-import me.sim05.twofactorauth.ui.viewModels.HomeViewModel
 import me.sim05.twofactorauth.ui.theme.TwoFactorAuthTheme
+import me.sim05.twofactorauth.ui.viewModels.AppViewModelProvider
+import me.sim05.twofactorauth.ui.viewModels.HomeViewModel
 import me.sim05.twofactorauth.ui.viewModels.ServiceDetails
 import me.sim05.twofactorauth.ui.viewModels.ServiceEntryViewModel
 import me.sim05.twofactorauth.ui.viewModels.toServiceDetails
+import me.sim05.twofactorauth.utils.TimerState
+import me.sim05.twofactorauth.utils.Token
 
 @Composable
 fun HomePage(
@@ -60,7 +60,9 @@ fun HomePage(
     viewModel: HomeViewModel = viewModel(factory = AppViewModelProvider.Factory)
 ) {
     val homeUiState by viewModel.homeUiState.collectAsState()
-    val serviceEntryViewModel: ServiceEntryViewModel = viewModel(LocalContext.current as ComponentActivity, factory = AppViewModelProvider.Factory)
+    val serviceEntryViewModel: ServiceEntryViewModel =
+        viewModel(LocalContext.current as ComponentActivity, factory = AppViewModelProvider.Factory)
+    val timerState by viewModel.timerState.observeAsState(TimerState())
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -94,7 +96,8 @@ fun HomePage(
                         launchSingleTop = true
                         restoreState = true
                     }
-                }
+                },
+                timerState = timerState
             )
         },
         bottomBar = {
@@ -104,31 +107,13 @@ fun HomePage(
 }
 
 @Composable
-fun TwoFactorAuthServices(modifier: Modifier = Modifier, serviceList: List<Service>, navToSetting: (ServiceDetails) -> Unit = {}) {
-    var targetTime by rememberSaveable {
-        mutableLongStateOf(System.currentTimeMillis() + 30000)
-    }
+fun TwoFactorAuthServices(
+    modifier: Modifier = Modifier,
+    serviceList: List<Service>,
+    navToSetting: (ServiceDetails) -> Unit = {},
+    timerState: TimerState?
+) {
 
-    var remainingTime by remember {
-        mutableLongStateOf(targetTime - System.currentTimeMillis())
-    }
-
-    var isRunning by remember { mutableStateOf(false) }
-    LifecycleResumeEffect(Unit) {
-        isRunning = true
-        onPauseOrDispose { isRunning = false }
-    }
-
-    LaunchedEffect(isRunning) {
-        while (isRunning) {
-            if (remainingTime <= 0) {
-                targetTime = System.currentTimeMillis() + 30000
-            }
-
-            remainingTime = targetTime - System.currentTimeMillis()
-            delay(1000)
-        }
-    }
 
     if (serviceList.isEmpty()) {
         Text(stringResource(R.string.no_services_added), modifier = modifier)
@@ -138,16 +123,26 @@ fun TwoFactorAuthServices(modifier: Modifier = Modifier, serviceList: List<Servi
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             items(serviceList) { service ->
-                TwoFactorAuthService(service = service, navToSetting = {
-                    navToSetting(service.toServiceDetails())
-                }, timeRemaining = remainingTime)
+                TwoFactorAuthService(
+                    service = service,
+                    navToSetting = {
+                        navToSetting(service.toServiceDetails())
+                    },
+                    timeRemaining = timerState?.timeInMillis ?: 30, token = Token(service.token),
+                )
             }
         }
     }
 }
 
 @Composable
-fun TwoFactorAuthService(modifier: Modifier = Modifier, service: Service, navToSetting: () -> Unit = {}, timeRemaining: Long) {
+fun TwoFactorAuthService(
+    modifier: Modifier = Modifier,
+    service: Service,
+    navToSetting: () -> Unit = {},
+    timeRemaining: Long,
+    token: Token
+) {
     Card(
         modifier = modifier
             .fillMaxWidth(),
@@ -164,7 +159,7 @@ fun TwoFactorAuthService(modifier: Modifier = Modifier, service: Service, navToS
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding(horizontal = 6.dp, vertical = 4.dp)
+                .padding(horizontal = 10.dp, vertical = 4.dp)
         ) {
             Icon(
                 Icons.Filled.Info,
@@ -183,17 +178,15 @@ fun TwoFactorAuthService(modifier: Modifier = Modifier, service: Service, navToS
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
-                    "000 000",
+                    token.getToken(),
                     style = MaterialTheme.typography.titleLarge
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
-            Icon(
-                Icons.Filled.CheckCircle,
-                "placeholder"
-            )
             Countdown(
-                modifier = Modifier.padding(start = 10.dp),
+                modifier = Modifier
+                    .padding(start = 10.dp)
+                    .size(36.dp),
                 timeLeft = (timeRemaining / 1000).toInt()
             )
         }
@@ -202,10 +195,25 @@ fun TwoFactorAuthService(modifier: Modifier = Modifier, service: Service, navToS
 
 @Composable
 fun Countdown(modifier: Modifier = Modifier, timeLeft: Int) {
-    Text(
-        text = timeLeft.toString(),
-        modifier = modifier
-    )
+    val color = if (timeLeft > 10) Color.White else Color.Red
+
+    Box(modifier.drawBehind {
+        drawArc(
+            color = color,
+            startAngle = 0f,
+            sweepAngle = 360f * (timeLeft / 30f),
+            useCenter = false,
+            style = androidx.compose.ui.graphics.drawscope.Stroke(
+                width = 3.dp.toPx()
+            )
+        )
+    }, contentAlignment = Alignment.Center) {
+        Text(
+            text = timeLeft.toString(),
+            style = MaterialTheme.typography.titleLarge,
+            color = color
+        )
+    }
 }
 
 @Preview(uiMode = Configuration.UI_MODE_NIGHT_YES, showBackground = true)
@@ -230,7 +238,8 @@ fun HomePagePreview() {
                     serviceList = listOf(
                         Service(0, "Service name", "Username", "000 000"),
                         Service(1, "Twitter", "Sim05", "111 111")
-                    )
+                    ),
+                    timerState = TimerState(10, 0.5f, isPlaying = true, isDone = false)
                 )
             },
             bottomBar = {
