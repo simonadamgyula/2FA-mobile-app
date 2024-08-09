@@ -70,6 +70,7 @@ dependencies {
     implementation(libs.androidx.lifecycle.livedata.ktx)
     implementation(libs.androidx.runtime.livedata)
     implementation(libs.androidbrowserhelper)
+    implementation(libs.androidx.glance.appwidget)
     ksp(libs.androidx.room.compiler)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
@@ -89,4 +90,6 @@ dependencies {
     testImplementation(libs.junit.jupiter.engine)
     testImplementation(libs.junit.jupiter.params)
     implementation(libs.play.services.code.scanner)
+    implementation(libs.coil.compose)
+    implementation(libs.gson)
 }

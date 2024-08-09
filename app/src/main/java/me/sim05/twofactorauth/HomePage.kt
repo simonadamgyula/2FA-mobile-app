@@ -3,7 +3,6 @@ package me.sim05.twofactorauth
 import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -18,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
 import androidx.compose.material3.FloatingActionButton
@@ -55,7 +53,7 @@ import me.sim05.twofactorauth.ui.viewModels.ServiceEntryViewModel
 import me.sim05.twofactorauth.ui.viewModels.toServiceDetails
 import me.sim05.twofactorauth.utils.TimerState
 import me.sim05.twofactorauth.utils.formattedTotp
-import me.sim05.twofactorauth.utils.generateTotp
+import coil.compose.AsyncImage
 
 @Composable
 fun HomePage(
@@ -173,12 +171,9 @@ fun TwoFactorAuthService(
             modifier = Modifier
                 .padding(horizontal = 10.dp, vertical = 4.dp)
         ) {
-            Icon(
-                Icons.Filled.Info,
-                "Service icon/logo",
-                modifier = Modifier
-                    .padding(end = 10.dp)
-                    .size(50.dp)
+            AsyncImage(
+                model = "https://img.logo.dev/google.com?token=pk_bW8CHcABQJajwBEhMWPBcg",
+                contentDescription = "Service logo",
             )
             Column {
                 Text(

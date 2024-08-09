@@ -32,7 +32,6 @@ enum class Pages {
     Settings,
     Add,
     Edit,
-    QrScan,
 }
 
 @OptIn(ExperimentalGetImage::class)
