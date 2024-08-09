@@ -11,16 +11,14 @@ import kotlin.time.Duration.Companion.seconds
 class AppViewModelProvider {
     companion object {
         val Factory: ViewModelProvider.Factory = viewModelFactory {
+            val repeatingTimer = RepeatingTimer(30.seconds.inWholeMilliseconds)
+
             initializer {
-                ServiceEntryViewModel(servicesApplication().container.servicesRepository)
+                ServiceEntryViewModel(servicesApplication().container.servicesRepository, repeatingTimer = repeatingTimer)
             }
             initializer {
-                val repeatingTimer = RepeatingTimer(30.seconds.inWholeMilliseconds)
                 repeatingTimer.start()
                 HomeViewModel(servicesApplication().container.servicesRepository, repeatingTimer)
-            }
-            initializer {
-                QrCodeViewModel()
             }
         }
     }

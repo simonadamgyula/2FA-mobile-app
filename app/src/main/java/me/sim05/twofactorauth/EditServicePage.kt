@@ -4,16 +4,24 @@ import android.content.res.Configuration
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -33,6 +41,7 @@ import me.sim05.twofactorauth.ui.viewModels.AppViewModelProvider
 import me.sim05.twofactorauth.ui.viewModels.ServiceDetails
 import me.sim05.twofactorauth.ui.viewModels.ServiceEntryViewModel
 import me.sim05.twofactorauth.ui.viewModels.ServiceUiState
+import me.sim05.twofactorauth.utils.TimerState
 
 @Composable
 fun EditServicePage(
@@ -44,10 +53,18 @@ fun EditServicePage(
 ) {
     val coroutineScope = rememberCoroutineScope()
     val openDeleteDialog = remember { mutableStateOf(false) }
+    val timerState by viewModel.timerState.observeAsState(TimerState())
 
     Scaffold(bottomBar = {
-        BottomNavigationBar(navController)
-    }
+            BottomNavigationBar(navController)
+        },
+        topBar = {
+            IconButton(
+                onClick = { navController.popBackStack() }
+            ) {
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+            }
+        }
     ) { innerPadding ->
         ServiceEditEntry(
             modifier = Modifier
@@ -64,7 +81,8 @@ fun EditServicePage(
             onValueChange = viewModel::updateUiState,
             onDeleteClick = {
                 openDeleteDialog.value = true
-            }
+            },
+            timerState = timerState
         )
         when {
             openDeleteDialog.value -> {
@@ -90,8 +108,11 @@ fun ServiceEditEntry(
     onValueChange: (ServiceDetails) -> Unit = {},
     onSaveClick: () -> Unit,
     onDeleteClick: () -> Unit,
-    serviceUiState: ServiceUiState
+    serviceUiState: ServiceUiState,
+    timerState: TimerState
 ) {
+    val timeRemaining = timerState.timeInMillis
+
     Column(
         modifier = modifier,
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -118,6 +139,12 @@ fun ServiceEditEntry(
         ) {
             Text(stringResource(R.string.delete))
         }
+        Spacer(Modifier.weight(1f))
+        TotpPreview(
+            modifier = Modifier.padding(10.dp),
+            timeRemaining = (if (timeRemaining == 0L) 30 else timeRemaining).toInt(),
+            service = serviceUiState.serviceDetails
+        )
     }
 }
 
@@ -144,7 +171,8 @@ fun EditServicePagePreview() {
                         username = "IsUsername",
                         secret = "NotAToken"
                     )
-                )
+                ),
+                TimerState()
             )
             when {
                 true -> {

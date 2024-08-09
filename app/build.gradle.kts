@@ -82,10 +82,11 @@ dependencies {
     implementation(libs.androidx.camera.camera2)
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.view)
-
-    // QR Scanner
     implementation(libs.barcode.scanning)
-
-    // Accompanist
     implementation(libs.accompanist.permissions)
+    implementation(libs.kotlin.stdlib.jdk8)
+    implementation(libs.commons.codec)
+    testImplementation(libs.junit.jupiter.engine)
+    testImplementation(libs.junit.jupiter.params)
+    implementation(libs.play.services.code.scanner)
 }

@@ -4,11 +4,15 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.asLiveData
 import me.sim05.twofactorauth.data.Service
 import me.sim05.twofactorauth.data.ServicesRepository
+import me.sim05.twofactorauth.utils.RepeatingTimer
 
-class ServiceEntryViewModel(private val servicesRepository: ServicesRepository) : ViewModel() {
+class ServiceEntryViewModel(private val servicesRepository: ServicesRepository, repeatingTimer: RepeatingTimer) : ViewModel() {
     var serviceUiState by mutableStateOf(ServiceUiState())
+
+    val timerState = repeatingTimer.timerState.asLiveData()
 
     fun updateUiState(serviceDetails: ServiceDetails) {
         serviceUiState =

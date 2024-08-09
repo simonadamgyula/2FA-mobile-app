@@ -2,6 +2,9 @@ package me.sim05.twofactorauth
 
 import android.content.res.Configuration
 import androidx.activity.ComponentActivity
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,12 +14,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardColors
@@ -29,13 +30,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -51,7 +54,8 @@ import me.sim05.twofactorauth.ui.viewModels.ServiceDetails
 import me.sim05.twofactorauth.ui.viewModels.ServiceEntryViewModel
 import me.sim05.twofactorauth.ui.viewModels.toServiceDetails
 import me.sim05.twofactorauth.utils.TimerState
-import me.sim05.twofactorauth.utils.totp
+import me.sim05.twofactorauth.utils.formattedTotp
+import me.sim05.twofactorauth.utils.generateTotp
 
 @Composable
 fun HomePage(
@@ -135,6 +139,7 @@ fun TwoFactorAuthServices(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TwoFactorAuthService(
     modifier: Modifier = Modifier,
@@ -142,18 +147,26 @@ fun TwoFactorAuthService(
     navToSetting: () -> Unit = {},
     timeRemaining: Long,
 ) {
+    val totp = formattedTotp(service.secret.toByteArray())
+    val clipboardManager: ClipboardManager = LocalClipboardManager.current
+
     Card(
         modifier = modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = {
+                    clipboardManager.setText(AnnotatedString(totp.replace(" ", "")))
+                },
+                onLongClick = {
+                    navToSetting()
+                },
+            ),
         colors = CardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainer,
             contentColor = MaterialTheme.colorScheme.onSurface,
             disabledContentColor = MaterialTheme.colorScheme.surfaceDim,
             disabledContainerColor = MaterialTheme.colorScheme.onSurface,
-        ),
-        onClick = {
-            navToSetting()
-        }
+        )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -177,7 +190,7 @@ fun TwoFactorAuthService(
                     style = MaterialTheme.typography.bodySmall
                 )
                 Text(
-                    totp(service.secret),
+                    totp,
                     style = MaterialTheme.typography.titleLarge
                 )
             }
@@ -186,7 +199,7 @@ fun TwoFactorAuthService(
                 modifier = Modifier
                     .padding(start = 10.dp)
                     .size(36.dp),
-                timeLeft = (timeRemaining).toInt()
+                timeLeft = (if (timeRemaining == 0L) 30 else timeRemaining).toInt()
             )
         }
     }
@@ -208,7 +221,7 @@ fun Countdown(modifier: Modifier = Modifier, timeLeft: Int) {
         )
     }, contentAlignment = Alignment.Center) {
         Text(
-            text = (if (timeLeft == 0) 30 else timeLeft).toString(),
+            text = (timeLeft).toString(),
             style = MaterialTheme.typography.titleLarge,
             color = color
         )

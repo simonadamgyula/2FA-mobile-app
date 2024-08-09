@@ -54,9 +54,6 @@ fun TwoFactorAuthApp(navController: NavHostController = rememberNavController())
         composable(route = Pages.Edit.name) {
             EditServicePage(navController = navController)
         }
-        composable(route = Pages.QrScan.name) {
-            QrScanningScreen()
-        }
     }
 }
 
