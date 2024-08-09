@@ -12,6 +12,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import me.sim05.twofactorauth.settings.GeneralSettingsPage
+import me.sim05.twofactorauth.settings.SecuritySettingsPage
 import me.sim05.twofactorauth.ui.theme.TwoFactorAuthTheme
 import me.sim05.twofactorauth.ui.viewModels.ServiceDetails
 
@@ -34,6 +36,12 @@ enum class Pages {
     Edit,
 }
 
+enum class SettingsPages {
+    General,
+    Security,
+    About,
+}
+
 @OptIn(ExperimentalGetImage::class)
 @Composable
 fun TwoFactorAuthApp(navController: NavHostController = rememberNavController()) {
@@ -52,6 +60,16 @@ fun TwoFactorAuthApp(navController: NavHostController = rememberNavController())
         }
         composable(route = Pages.Edit.name) {
             EditServicePage(navController = navController)
+        }
+
+        composable(route = SettingsPages.General.name) {
+            GeneralSettingsPage(navController = navController)
+        }
+        composable(route = SettingsPages.Security.name) {
+            SecuritySettingsPage(navController = navController)
+        }
+        composable(route = SettingsPages.About.name) {
+            AboutPage(navController = navController)
         }
     }
 }

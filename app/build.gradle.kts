@@ -92,4 +92,6 @@ dependencies {
     implementation(libs.play.services.code.scanner)
     implementation(libs.coil.compose)
     implementation(libs.gson)
+    implementation(libs.glance.appwidget)
+    implementation(libs.glance.material)
 }
