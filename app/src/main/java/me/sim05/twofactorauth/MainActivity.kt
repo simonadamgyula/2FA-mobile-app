@@ -11,11 +11,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import androidx.navigation.navArgument
-import me.sim05.twofactorauth.settings.GeneralSettingsPage
-import me.sim05.twofactorauth.settings.SecuritySettingsPage
 import me.sim05.twofactorauth.ui.theme.TwoFactorAuthTheme
-import me.sim05.twofactorauth.ui.viewModels.ServiceDetails
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,12 +58,6 @@ fun TwoFactorAuthApp(navController: NavHostController = rememberNavController())
             EditServicePage(navController = navController)
         }
 
-        composable(route = SettingsPages.General.name) {
-            GeneralSettingsPage(navController = navController)
-        }
-        composable(route = SettingsPages.Security.name) {
-            SecuritySettingsPage(navController = navController)
-        }
         composable(route = SettingsPages.About.name) {
             AboutPage(navController = navController)
         }
