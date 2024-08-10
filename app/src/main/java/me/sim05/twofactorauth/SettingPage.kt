@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -17,6 +17,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -34,25 +35,48 @@ import androidx.navigation.NavController
 import me.sim05.twofactorauth.ui.components.BottomNavigationBar
 
 sealed class Setting {
-    data class ClickSettings(val title: String, val icon: ImageVector, val onClick: () -> Unit) :
+    data class ClickSettings(
+        val title: String,
+        val icon: ImageVector,
+        val onClick: () -> Unit
+    ) :
         Setting()
 
-    data class ToggleSetting(
+    data class ToggleSettings(
         val title: String,
         val icon: ImageVector,
         val onClick: () -> Unit,
-        val isChecked: Boolean
+        val checked: Boolean,
+        val key: String
     ) : Setting()
 }
 
 @Composable
 fun SettingPage(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    onThemeChange: (String) -> Unit
 ) {
     val context = LocalContext.current
     var openedDialog by remember { mutableStateOf<Int?>(null) }
     val sharedPreferences = remember { PreferenceManager(context) }
+
+    var showNextToken by remember {
+        mutableStateOf(
+            sharedPreferences.getBoolean(
+                "showNextToken",
+                false
+            )
+        )
+    }
+    var hiddenTokens by remember {
+        mutableStateOf(
+            sharedPreferences.getBoolean(
+                "hiddenTokens",
+                false
+            )
+        )
+    }
 
     val settings: List<Setting> = listOf(
         Setting.ClickSettings(
@@ -69,16 +93,25 @@ fun SettingPage(
                 openedDialog = 1
             }
         ),
-        Setting.ToggleSetting(
+        Setting.ToggleSettings(
             "Show next token",
             Icons.Default.Info,
-            onClick = {},
-            isChecked = false
+            onClick = {
+                showNextToken = !showNextToken
+                sharedPreferences.toggleBoolean("showNextToken")
+            },
+            checked = showNextToken,
+            key = "showNextToken"
         ),
-        Setting.ClickSettings(
+        Setting.ToggleSettings(
             "Hidden tokens",
             Icons.Default.Info,
-            onClick = {}
+            onClick = {
+                hiddenTokens = !hiddenTokens
+                sharedPreferences.toggleBoolean("hiddenTokens")
+            },
+            checked = hiddenTokens,
+            key = "hiddenTokens"
         ),
     )
 
@@ -103,7 +136,8 @@ fun SettingPage(
             1 -> {
                 ThemeDialog(
                     onDismissRequest = { openedDialog = null },
-                    sharedPreferences = sharedPreferences
+                    sharedPreferences = sharedPreferences,
+                    onThemeChange = onThemeChange
                 )
             }
         }
@@ -111,15 +145,36 @@ fun SettingPage(
 }
 
 @Composable
-fun SettingsList(modifier: Modifier = Modifier, settings: List<Setting>) {
+fun SettingsList(
+    modifier: Modifier = Modifier,
+    settings: List<Setting>,
+) {
     Column(modifier = modifier) {
         settings.forEach { setting ->
-            SettingElement(
-                modifier = Modifier.fillMaxWidth(),
-                title = setting.title,
-                icon = setting.icon,
-                onClick = setting.onClick
-            )
+            when (setting) {
+                is Setting.ClickSettings -> {
+                    SettingElement(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 16.dp, start = 8.dp),
+                        title = setting.title,
+                        icon = setting.icon,
+                        onClick = setting.onClick
+                    )
+                }
+
+                is Setting.ToggleSettings -> {
+                    ToggleSettingElement(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(end = 16.dp, start = 8.dp),
+                        title = setting.title,
+                        icon = setting.icon,
+                        onClick = setting.onClick,
+                        isChecked = setting.checked
+                    )
+                }
+            }
         }
     }
 }
@@ -141,17 +196,46 @@ fun SettingElement(
 }
 
 @Composable
+fun ToggleSettingElement(
+    modifier: Modifier = Modifier,
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    isChecked: Boolean
+) {
+    Row(
+        modifier = modifier.clickable(onClick = onClick),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(icon, contentDescription = title, modifier = Modifier.padding(16.dp))
+        Text(title)
+        Spacer(modifier = Modifier.weight(1f))
+        Switch(
+            checked = isChecked,
+            onCheckedChange = { onClick() }
+        )
+    }
+}
+
+@Composable
 fun ListTypeDialog(onDismissRequest: () -> Unit, sharedPreferences: PreferenceManager) {
     val listOptions = listOf("Default", "Compact")
     val (selectedOption, onOptionSelect) = remember {
         mutableStateOf(
             sharedPreferences.getData(
                 "listStyle",
-                "Follow system"
+                "followsystem"
             )
         )
     }
     Log.v("selectedOption", selectedOption)
+
+    fun onSelect(option: String) {
+        val parsedOption = option.lowercase().replace(" ", "")
+
+        onOptionSelect(parsedOption)
+        sharedPreferences.saveData("listStyle", parsedOption)
+    }
 
     Dialog(onDismissRequest = { onDismissRequest() }) {
         Card(
@@ -176,15 +260,18 @@ fun ListTypeDialog(onDismissRequest: () -> Unit, sharedPreferences: PreferenceMa
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
-                            selected = (option == selectedOption),
+                            selected = (option.lowercase().replace(" ", "") == selectedOption),
                             onClick = {
-                                onOptionSelect(option)
-                                sharedPreferences.saveData("listStyle", option.lowercase())
+                                onSelect(option)
                             }
                         )
                         Text(
                             text = option,
-                            modifier = Modifier.padding(8.dp)
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .clickable {
+                                    onSelect(option)
+                                }
                         )
                     }
                 }
@@ -194,15 +281,28 @@ fun ListTypeDialog(onDismissRequest: () -> Unit, sharedPreferences: PreferenceMa
 }
 
 @Composable
-fun ThemeDialog(onDismissRequest: () -> Unit, sharedPreferences: PreferenceManager) {
+fun ThemeDialog(
+    onDismissRequest: () -> Unit,
+    sharedPreferences: PreferenceManager,
+    onThemeChange: (String) -> Unit
+) {
     val listOptions = listOf("Follow system", "Light", "Dark")
     val (selectedOption, onOptionSelect) = remember {
         mutableStateOf(
             sharedPreferences.getData(
                 "theme",
-                "Follow system"
+                "followsystem"
             )
         )
+    }
+    Log.v("selectedOption", selectedOption)
+
+    fun onSelect(option: String) {
+        val parsedOption = option.lowercase().replace(" ", "")
+
+        onOptionSelect(parsedOption)
+        sharedPreferences.saveData("theme", parsedOption)
+        onThemeChange(parsedOption)
     }
 
     Dialog(onDismissRequest = { onDismissRequest() }) {
@@ -227,15 +327,18 @@ fun ThemeDialog(onDismissRequest: () -> Unit, sharedPreferences: PreferenceManag
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         RadioButton(
-                            selected = (option == selectedOption),
+                            selected = (option.lowercase().replace(" ", "") == selectedOption),
                             onClick = {
-                                onOptionSelect(option)
-                                sharedPreferences.saveData("theme", option.lowercase())
+                                onSelect(option)
                             }
                         )
                         Text(
                             text = option,
-                            modifier = Modifier.padding(8.dp)
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .clickable {
+                                    onSelect(option)
+                                }
                         )
                     }
                 }

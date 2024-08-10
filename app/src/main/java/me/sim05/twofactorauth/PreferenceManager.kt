@@ -7,9 +7,16 @@ class PreferenceManager(context: Context) {
     private val sharedPreferences: SharedPreferences =
         context.getSharedPreferences("AuthPrefs", Context.MODE_PRIVATE)
 
-    fun saveData(key: String, value: String) {
+    fun <T> saveData(key: String, value: T) {
         val editor = sharedPreferences.edit()
-        editor.putString(key, value)
+        when (value) {
+            is String -> editor.putString(key, value as String)
+            is Int -> editor.putInt(key, value as Int)
+            is Boolean -> editor.putBoolean(key, value as Boolean)
+            is Long -> editor.putLong(key, value as Long)
+            is Float -> editor.putFloat(key, value as Float)
+            else -> throw IllegalArgumentException("Type not supported")
+        }
         editor.apply()
     }
 
