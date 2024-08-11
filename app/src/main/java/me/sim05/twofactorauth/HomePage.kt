@@ -40,6 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
@@ -52,6 +53,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.rememberNavController
+import coil.compose.AsyncImage
 import me.sim05.twofactorauth.data.Service
 import me.sim05.twofactorauth.ui.components.BottomNavigationBar
 import me.sim05.twofactorauth.ui.theme.TwoFactorAuthTheme
@@ -62,7 +64,6 @@ import me.sim05.twofactorauth.ui.viewModels.ServiceEntryViewModel
 import me.sim05.twofactorauth.ui.viewModels.toServiceDetails
 import me.sim05.twofactorauth.utils.TimerState
 import me.sim05.twofactorauth.utils.formattedTotp
-import coil.compose.AsyncImage
 
 @Composable
 fun HomePage(
@@ -128,7 +129,15 @@ fun TwoFactorAuthServices(
     val sharedPreferences = remember { PreferenceManager(context) }
 
     if (serviceList.isEmpty()) {
-        Text(stringResource(R.string.no_services_added), modifier = modifier)
+        Column(
+            modifier = modifier
+                .padding(horizontal = 10.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(stringResource(R.string.no_services_added), modifier = modifier)
+        }
     } else {
         LazyColumn(
             modifier = modifier.padding(horizontal = 10.dp),
@@ -198,12 +207,13 @@ fun TwoFactorAuthService(
         ) {
             AsyncImage(
                 modifier = Modifier
-                    .clip(CircleShape)
-                    .padding(10.dp),
-                model = "https://img.logo.dev/google.com?token=pk_bW8CHcABQJajwBEhMWPBcg",
+                    .padding(10.dp)
+                    .clip(CircleShape),
+                model = "https://img.logo.dev/${service.name.lowercase()}.com?token=pk_bW8CHcABQJajwBEhMWPBcg",
+                contentScale = ContentScale.Crop,
                 contentDescription = "Service logo",
             )
-            Column (
+            Column(
                 verticalArrangement = Arrangement.spacedBy(if (compact) 2.dp else 4.dp)
             ) {
                 Text(
@@ -234,13 +244,13 @@ fun TwoFactorAuthService(
 
 @Composable
 fun Countdown(modifier: Modifier = Modifier, timeLeft: Int) {
-    val color = if (timeLeft > 10) Color.White else Color.Red
+    val color = if (timeLeft > 5) Color.White else Color.Red
 
     Box(modifier.drawBehind {
         drawArc(
             color = color,
-            startAngle = 0f,
-            sweepAngle = 360f * (timeLeft / 30f),
+            startAngle = -90f,
+            sweepAngle = (360f * (timeLeft / 30f)) % 360f,
             useCenter = false,
             style = androidx.compose.ui.graphics.drawscope.Stroke(
                 width = 3.dp.toPx()

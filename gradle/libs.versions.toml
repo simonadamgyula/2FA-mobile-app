@@ -33,6 +33,7 @@ runtimeLivedata = "1.6.8"
 androidbrowserhelper = "2.5.0"
 glanceAppwidget = "1.1.0"
 glance = "1.1.0-beta02"
+workRuntimeKtx = "2.9.1"
 
 [libraries]
 #noinspection SimilarGradleDependency
@@ -79,6 +80,7 @@ androidx-lifecycle-livedata-ktx = { group = "androidx.lifecycle", name = "lifecy
 androidx-runtime-livedata = { group = "androidx.compose.runtime", name = "runtime-livedata", version.ref = "runtimeLivedata" }
 androidbrowserhelper = { group = "com.google.androidbrowserhelper", name = "androidbrowserhelper", version.ref = "androidbrowserhelper" }
 androidx-glance-appwidget = { group = "androidx.glance", name = "glance-appwidget", version.ref = "glanceAppwidget" }
+androidx-work-runtime-ktx = { group = "androidx.work", name = "work-runtime-ktx", version.ref = "workRuntimeKtx" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

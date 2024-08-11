@@ -2,6 +2,7 @@ package me.sim05.twofactorauth
 
 import android.util.Log
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -13,8 +14,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.Card
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -26,6 +30,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextAlign
@@ -34,10 +39,68 @@ import androidx.compose.ui.window.Dialog
 import androidx.navigation.NavController
 import me.sim05.twofactorauth.ui.components.BottomNavigationBar
 
+class SettingsSection(
+    val title: String,
+    private val settings: List<Setting>
+) {
+    @Composable
+    fun SettingsSelectionComposable(modifier: Modifier = Modifier) {
+        Column(modifier = modifier) {
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp)
+            )
+            settings.forEach { setting ->
+                when (setting) {
+                    is Setting.ClickSettings -> {
+                        SettingElement(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 16.dp, start = 8.dp),
+                            title = setting.title,
+                            icon = setting.icon,
+                            onClick = setting.onClick,
+                            description = setting.description,
+                        )
+                    }
+
+                    is Setting.ToggleSettings -> {
+                        ToggleSettingElement(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(end = 16.dp, start = 8.dp),
+                            title = setting.title,
+                            icon = setting.icon,
+                            onClick = setting.onClick,
+                            isChecked = setting.checked,
+                            description = setting.description
+                        )
+                    }
+
+                    is Setting.SettingSpacer -> {
+                        HorizontalDivider(
+                            modifier = Modifier.padding(
+                                top = (setting.height / 2).dp,
+                                bottom = (setting.height / 2).dp
+                            ), color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                        )
+                    }
+                }
+            }
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+            )
+        }
+    }
+}
+
 sealed class Setting {
     data class ClickSettings(
         val title: String,
         val icon: ImageVector,
+        val description: String? = null,
         val onClick: () -> Unit
     ) :
         Setting()
@@ -46,8 +109,13 @@ sealed class Setting {
         val title: String,
         val icon: ImageVector,
         val onClick: () -> Unit,
+        val description: String,
         val checked: Boolean,
         val key: String
+    ) : Setting()
+
+    data class SettingSpacer(
+        val height: Int
     ) : Setting()
 }
 
@@ -78,41 +146,60 @@ fun SettingPage(
         )
     }
 
-    val settings: List<Setting> = listOf(
-        Setting.ClickSettings(
-            "List style",
-            Icons.Default.Info,
-            onClick = {
-                openedDialog = 0
-            }
+    val settings: List<SettingsSection> = listOf(
+        SettingsSection(
+            "General",
+            listOf(
+                Setting.ClickSettings(
+                    "List style",
+                    Icons.Default.Info,
+                    onClick = {
+                        openedDialog = 0
+                    }
+                ),
+                Setting.ClickSettings(
+                    "Theme",
+                    Icons.AutoMirrored.Filled.List,
+                    onClick = {
+                        openedDialog = 1
+                    }
+                ),
+                Setting.ToggleSettings(
+                    "Show next token",
+                    Icons.Default.Info,
+                    onClick = {
+                        showNextToken = !showNextToken
+                        sharedPreferences.toggleBoolean("showNextToken")
+                    },
+                    description = "Show the next token when the current token is about to expire",
+                    checked = showNextToken,
+                    key = "showNextToken"
+                ),
+                Setting.ToggleSettings(
+                    "Hidden tokens",
+                    Icons.Default.Info,
+                    onClick = {
+                        hiddenTokens = !hiddenTokens
+                        sharedPreferences.toggleBoolean("hiddenTokens")
+                    },
+                    description = "Reveal tokens on tap",
+                    checked = hiddenTokens,
+                    key = "hiddenTokens"
+                ),
+            )
         ),
-        Setting.ClickSettings(
-            "Theme",
-            Icons.AutoMirrored.Filled.List,
-            onClick = {
-                openedDialog = 1
-            }
-        ),
-        Setting.ToggleSettings(
-            "Show next token",
-            Icons.Default.Info,
-            onClick = {
-                showNextToken = !showNextToken
-                sharedPreferences.toggleBoolean("showNextToken")
-            },
-            checked = showNextToken,
-            key = "showNextToken"
-        ),
-        Setting.ToggleSettings(
-            "Hidden tokens",
-            Icons.Default.Info,
-            onClick = {
-                hiddenTokens = !hiddenTokens
-                sharedPreferences.toggleBoolean("hiddenTokens")
-            },
-            checked = hiddenTokens,
-            key = "hiddenTokens"
-        ),
+        SettingsSection(
+            "About",
+            listOf(
+                Setting.ClickSettings(
+                    "About",
+                    Icons.Outlined.Info,
+                    onClick = {
+                        navController.navigate("about")
+                    }
+                )
+            )
+        )
     )
 
     Scaffold(
@@ -147,34 +234,11 @@ fun SettingPage(
 @Composable
 fun SettingsList(
     modifier: Modifier = Modifier,
-    settings: List<Setting>,
+    settings: List<SettingsSection>,
 ) {
     Column(modifier = modifier) {
-        settings.forEach { setting ->
-            when (setting) {
-                is Setting.ClickSettings -> {
-                    SettingElement(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 16.dp, start = 8.dp),
-                        title = setting.title,
-                        icon = setting.icon,
-                        onClick = setting.onClick
-                    )
-                }
-
-                is Setting.ToggleSettings -> {
-                    ToggleSettingElement(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(end = 16.dp, start = 8.dp),
-                        title = setting.title,
-                        icon = setting.icon,
-                        onClick = setting.onClick,
-                        isChecked = setting.checked
-                    )
-                }
-            }
+        settings.forEach { section ->
+            section.SettingsSelectionComposable()
         }
     }
 }
@@ -184,14 +248,22 @@ fun SettingElement(
     modifier: Modifier = Modifier,
     title: String,
     icon: ImageVector,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    description: String?
 ) {
     Row(
         modifier = modifier.clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, contentDescription = title, modifier = Modifier.padding(16.dp))
-        Text(title)
+        Column(verticalArrangement = Arrangement.Center) {
+            Text(title)
+            if (description != null) Text(
+                description,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray,
+            )
+        }
     }
 }
 
@@ -201,15 +273,22 @@ fun ToggleSettingElement(
     title: String,
     icon: ImageVector,
     onClick: () -> Unit,
-    isChecked: Boolean
+    isChecked: Boolean,
+    description: String
 ) {
     Row(
         modifier = modifier.clickable(onClick = onClick),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(icon, contentDescription = title, modifier = Modifier.padding(16.dp))
-        Text(title)
-        Spacer(modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(title)
+            Text(
+                description,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray,
+            )
+        }
         Switch(
             checked = isChecked,
             onCheckedChange = { onClick() }
