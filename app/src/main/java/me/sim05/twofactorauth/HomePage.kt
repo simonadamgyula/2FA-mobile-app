@@ -1,6 +1,9 @@
 package me.sim05.twofactorauth
 
+import android.content.Context
 import android.content.res.Configuration
+import android.util.Log
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
@@ -15,6 +18,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.Card
@@ -28,8 +32,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipboardManager
@@ -37,6 +45,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -115,7 +124,8 @@ fun TwoFactorAuthServices(
     navToSetting: (ServiceDetails) -> Unit = {},
     timerState: TimerState?
 ) {
-
+    val context = LocalContext.current
+    val sharedPreferences = remember { PreferenceManager(context) }
 
     if (serviceList.isEmpty()) {
         Text(stringResource(R.string.no_services_added), modifier = modifier)
@@ -124,13 +134,17 @@ fun TwoFactorAuthServices(
             modifier = modifier.padding(horizontal = 10.dp),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
+            Log.v("test", "this runs")
             items(serviceList) { service ->
                 TwoFactorAuthService(
                     service = service,
                     navToSetting = {
                         navToSetting(service.toServiceDetails())
                     },
-                    timeRemaining = timerState?.timeInMillis ?: 30
+                    timeRemaining = timerState?.timeInMillis ?: 30,
+                    hidden = sharedPreferences.getBoolean("hiddenTokens", false),
+                    context = context,
+                    compact = sharedPreferences.getData("listStyle", "default") == "compact",
                 )
             }
         }
@@ -144,16 +158,27 @@ fun TwoFactorAuthService(
     service: Service,
     navToSetting: () -> Unit = {},
     timeRemaining: Long,
+    hidden: Boolean,
+    compact: Boolean,
+    context: Context
 ) {
     val totp = formattedTotp(service.secret.toByteArray())
     val clipboardManager: ClipboardManager = LocalClipboardManager.current
+    var hiding by remember { mutableStateOf(hidden) }
 
     Card(
         modifier = modifier
             .fillMaxWidth()
             .combinedClickable(
                 onClick = {
-                    clipboardManager.setText(AnnotatedString(totp.replace(" ", "")))
+                    if (hiding) {
+                        hiding = false
+                    } else {
+                        clipboardManager.setText(AnnotatedString(totp.replace(" ", "")))
+                        val toast =
+                            Toast.makeText(context, "Copied to clipboard", Toast.LENGTH_SHORT)
+                        toast.show()
+                    }
                 },
                 onLongClick = {
                     navToSetting()
@@ -169,30 +194,37 @@ fun TwoFactorAuthService(
         Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 4.dp)
+                .padding(horizontal = 10.dp, vertical = if (compact) 4.dp else 12.dp)
         ) {
             AsyncImage(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .padding(10.dp),
                 model = "https://img.logo.dev/google.com?token=pk_bW8CHcABQJajwBEhMWPBcg",
                 contentDescription = "Service logo",
             )
-            Column {
+            Column (
+                verticalArrangement = Arrangement.spacedBy(if (compact) 2.dp else 4.dp)
+            ) {
                 Text(
                     service.name,
-                    style = MaterialTheme.typography.labelMedium
+                    style = if (compact) MaterialTheme.typography.labelMedium else MaterialTheme.typography.titleLarge
                 )
                 Text(
                     service.username,
-                    style = MaterialTheme.typography.bodySmall
+                    style = if (compact) MaterialTheme.typography.bodySmall else MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontStyle = FontStyle.Italic
                 )
                 Text(
-                    totp,
-                    style = MaterialTheme.typography.titleLarge
+                    if (hiding) "Click to reveal" else totp,
+                    style = if (compact) MaterialTheme.typography.titleLarge else MaterialTheme.typography.headlineMedium,
                 )
             }
             Spacer(modifier = Modifier.weight(1f))
             Countdown(
                 modifier = Modifier
-                    .padding(start = 10.dp)
+                    .padding(start = 10.dp, end = 8.dp)
                     .size(36.dp),
                 timeLeft = (if (timeRemaining == 0L) 30 else timeRemaining).toInt()
             )
