@@ -5,4 +5,5 @@ I used this project to try to learn Jetpack Compose. I still don't really unders
 
 ## Installation
 
-// idk
+I just couldn't find a way to build the apk in jetpack compose. If somebody knows how to do it, please help me.
+If you want to try the app, you can use Android Studio to install the app.
